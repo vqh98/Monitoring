@@ -1,0 +1,10 @@
+services:
+  news-monitor:
+    build: .
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      MONITORING_BASE_DIR: /app
+    volumes:
+      - ./data:/app/data
+    init: true

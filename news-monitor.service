@@ -1,0 +1,18 @@
+[Unit]
+Description=Telegram News Monitor
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/news-monitor
+ExecStart=/usr/bin/python3 -u /opt/news-monitor/run.py
+Restart=on-failure
+RestartSec=10
+Environment=PYTHONUNBUFFERED=1
+Environment=MONITORING_BASE_DIR=/opt/news-monitor
+NoNewPrivileges=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target
