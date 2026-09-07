@@ -145,6 +145,15 @@ class MatchingTests(unittest.TestCase):
         self.assertLess(fragment_length, 6)
         self.assertEqual(fragment_score, 0.0)
 
+    def test_same_channel_handle_does_not_make_unrelated_posts_match(self):
+        first = signature(
+            "معاون وزیر صمت مصوبه شورای عالی کار برای جابه‌جایی روز تعطیل هفتگی واحد های تولیدی به روزی غیر از جمعه و جبران ساعات از دست‌رفته ناشی از محدودیت برق را ابلاغ کرد\n@Titretejarat"
+        )
+        second = signature(
+            "سخنگوی آموزش‌وپرورش گفته از اول مهر حق‌التدریس معلمان شاغل و بازنشسته ۲ برابر می‌شود\n@Titretejarat"
+        )
+        self.assertFalse(news_match(first, second)[0])
+
 
 class ReportTests(unittest.TestCase):
     def test_speed_time_score_decays_smoothly_after_configured_scale(self):

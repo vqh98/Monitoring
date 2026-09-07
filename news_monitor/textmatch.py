@@ -7,6 +7,7 @@ from difflib import SequenceMatcher
 import unicodedata
 
 URL_RE = re.compile(r"(?:https?://|t\.me/)\S+", re.I)
+TELEGRAM_HANDLE_RE = re.compile(r"(?<!\w)@[a-zA-Z0-9_]{3,}")
 SPACE_RE = re.compile(r"\s+")
 NOISE_RE = re.compile(r"[^\w\s]", re.UNICODE)
 ARABIC_MAP = str.maketrans({"ي": "ی", "ك": "ک", "ة": "ه", "ۀ": "ه", "ؤ": "و", "إ": "ا", "أ": "ا"})
@@ -14,7 +15,11 @@ ARABIC_MAP = str.maketrans({"ي": "ی", "ك": "ک", "ة": "ه", "ۀ": "ه", "ؤ"
 
 def normalize(text: str) -> str:
     text = unicodedata.normalize("NFKC", text or "")
-    text = URL_RE.sub(" ", text).translate(ARABIC_MAP).lower()
+    # Channel signatures/mentions are metadata, not news content. Keeping a
+    # repeated @channel line can make unrelated one-line posts look similar
+    # because it is treated as the lead by ``signature``.
+    text = URL_RE.sub(" ", text)
+    text = TELEGRAM_HANDLE_RE.sub(" ", text).translate(ARABIC_MAP).lower()
     text = text.replace("\u200c", " ").replace("\u200f", " ").replace("\u200e", " ")
     text = "".join(
         char for char in text
