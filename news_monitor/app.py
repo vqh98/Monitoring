@@ -718,7 +718,15 @@ async def main() -> None:
         refresh_start = max(start, end - timedelta(minutes=26))
         for channel in viral_channel_names():
             try:
-                await refresh_interactions(channel, refresh_start, end)
+                # A single slow Telegram request must not block the entire
+                # scanner: snapshots for the other channels are still valid
+                # and should be evaluated on this cycle.
+                await asyncio.wait_for(
+                    refresh_interactions(channel, refresh_start, end),
+                    timeout=8,
+                )
+            except asyncio.TimeoutError:
+                log.warning("viral interaction refresh timed out for %s", channel)
             except Exception:
                 log.exception("viral interaction refresh failed for %s", channel)
         sent = 0
@@ -2023,6 +2031,11 @@ async def main() -> None:
         while True:
             start, end = day_window(config)
             try:
+                # Other background loops (notably proofreading) temporarily
+                # switch the thread-local database user. Viral monitoring is
+                # a global owner-owned pipeline and must never accidentally
+                # read a different user's (usually empty) channel list.
+                db.use_user(db.owner_id)
                 await ensure_user_connected()
                 await scan_and_send_viral(start, end)
             except Exception:

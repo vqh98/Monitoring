@@ -1,9 +1,15 @@
 @echo off
 setlocal
 cd /d "%~dp0"
-set "PYTHON=C:\Users\r_parastar\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\python.exe"
-if not exist "%PYTHON%" (
-  echo Python runtime not found: %PYTHON%
+rem Resolve Python on the current machine instead of hard-coding the
+rem account-specific Codex runtime path from the development machine.
+set "PYTHON="
+where python >nul 2>&1 && set "PYTHON=python"
+if not defined PYTHON (
+  where py >nul 2>&1 && set "PYTHON=py -3"
+)
+if not defined PYTHON (
+  echo Python runtime not found on PATH.
   exit /b 1
 )
 :restart
